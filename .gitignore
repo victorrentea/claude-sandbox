@@ -1,0 +1,5 @@
+.env
+webhook-url.txt
+.DS_Store
+.idea/
+.claude/

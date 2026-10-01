@@ -1,0 +1,43 @@
+#!/usr/bin/env bash
+# Launch Claude Code in the /sandbox demo project.
+# Counterpart to `claude-docker`: same goal (run Claude under a sandbox), but
+# uses Claude Code's built-in OS-level /sandbox instead of a Docker container.
+set -euo pipefail
+
+DEMO_DIR="$HOME/workspace/claude-sandbox"
+
+# Idempotent prereqs for prove.py — the file the policy denies reading must
+# actually exist for the denial to be a demonstration rather than a missing-file.
+mkdir -p /tmp/sandbox-demo
+
+# Both demo secrets live in .env, in the project (gitignored) so the audience can see
+# the file next to the scripts: DEMO_SECRET is only ever read (and denied),
+# DEMO_API_KEY is also handed to Claude, masked.
+if [ ! -f "$DEMO_DIR/.env" ]; then
+    (umask 077; printf 'DEMO_SECRET=top-secret-%s\nDEMO_API_KEY=sk-demo-%s\n' "$(openssl rand -hex 8)" "$(openssl rand -hex 16)" > "$DEMO_DIR/.env")
+fi
+
+# Key-masking demo: a throwaway key the agent can USE (via ./remote-server-cli.py) but never READ.
+# The whole policy lives in sandbox-settings.json and goes in via --settings, not
+# .claude/settings.json: Claude Code ignores `mask` entries in a repo's settings
+# (a repo must not be able to route your real credentials to hosts of its choosing).
+export DEMO_API_KEY="$(sed -n 's/^DEMO_API_KEY=//p' "$DEMO_DIR/.env")"
+# Exfiltration target: a private webhook.site URL plays the attacker's server. It's on the
+# allow-list, so a send really goes out, and the audience watches only the placeholder
+# arrive. Reused while webhook.site still knows it (a free URL lasts 7 days), else renewed.
+URL_FILE="$DEMO_DIR/webhook-url.txt"
+if [ ! -s "$URL_FILE" ] || ! curl -sf -m5 -o /dev/null "https://webhook.site/token/$(basename "$(cat "$URL_FILE")")"; then
+    token="$(curl -sf -m10 -X POST -H 'Accept: application/json' https://webhook.site/token \
+        | python3 -c 'import json, sys; print(json.load(sys.stdin)["uuid"])')" \
+        && echo "https://webhook.site/$token" > "$URL_FILE" \
+        || echo "warning: could not get a webhook.site URL (offline?)" >&2
+fi
+
+# The remote server is NOT started here: run `python3 remote-server.py` yourself in
+# another terminal, so the audience watches it log each call. The banner says if it's down.
+
+# No banner here: the TUI wipes whatever is printed before `exec claude`. The rules
+# are shown inside the session instead, by banner.py as the SessionStart hook.
+
+cd "$DEMO_DIR"
+exec claude --settings "$DEMO_DIR/sandbox-settings.json" "$@"

@@ -1,0 +1,59 @@
+{
+  "sandbox": {
+    "enabled": true,
+    "autoAllowBashIfSandboxed": true,
+    "allowUnsandboxedCommands": false,
+    "network": {
+      "tlsTerminate": {},
+      "allowedDomains": [
+        "github.com",
+        "localhost",
+        "webhook.site"
+      ]
+    },
+    "filesystem": {
+      "allowWrite": [
+        "/tmp/sandbox-demo"
+      ],
+      "denyRead": [
+        "~/workspace/claude-sandbox/.env"
+      ]
+    },
+    "credentials": {
+      "envVars": [
+        {
+          "name": "DEMO_API_KEY",
+          "mode": "mask",
+          "injectHosts": [
+            "localhost"
+          ]
+        }
+      ],
+      "files": [
+        {
+          "path": "~/workspace/claude-sandbox/.env",
+          "mode": "deny"
+        }
+      ],
+      "allowPlaintextInject": true
+    }
+  },
+  "permissions": {
+    "deny": [
+      "Read(~/workspace/claude-sandbox/.env)"
+    ]
+  },
+  "hooks": {
+    "SessionStart": [
+      {
+        "matcher": "startup",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"$CLAUDE_PROJECT_DIR/banner.py\" --hook"
+          }
+        ]
+      }
+    ]
+  }
+}
