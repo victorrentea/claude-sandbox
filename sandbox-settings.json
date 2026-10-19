@@ -19,7 +19,6 @@
         "/tmp/sandbox-demo"
       ],
       "denyRead": [
-        "~/workspace/claude-sandbox/.env",
         "~/Library/Keychains"
       ],
       "denyWrite": [
