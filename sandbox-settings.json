@@ -21,6 +21,9 @@
       "denyRead": [
         "~/workspace/claude-sandbox/.env",
         "~/Library/Keychains"
+      ],
+      "denyWrite": [
+        "claude-sandbox"
       ]
     },
 
