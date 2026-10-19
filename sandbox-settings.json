@@ -3,6 +3,8 @@
     "enabled": true,
     "autoAllowBashIfSandboxed": true,
     "allowUnsandboxedCommands": false,
+    "failIfUnavailable": true,
+
     "network": {
       "tlsTerminate": {},
       "allowedDomains": [
@@ -11,6 +13,7 @@
         "webhook.site"
       ]
     },
+
     "filesystem": {
       "allowWrite": [
         "/tmp/sandbox-demo"
@@ -19,6 +22,7 @@
         "~/workspace/claude-sandbox/.env"
       ]
     },
+
     "credentials": {
       "envVars": [
         {
@@ -29,6 +33,7 @@
           ]
         }
       ],
+      
       "files": [
         {
           "path": "~/workspace/claude-sandbox/.env",
